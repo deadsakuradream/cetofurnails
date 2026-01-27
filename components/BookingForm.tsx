@@ -296,6 +296,21 @@ export default function BookingForm({ services, designs, timeSlots }: BookingFor
         // Сохраняем Telegram ID
         if (user.id) {
           setValue('telegramUserId', user.id.toString());
+
+          // Запрашиваем сохраненные данные пользователя (номер телефона)
+          fetch(`/api/telegram/user?telegramId=${user.id}`)
+            .then(res => res.json())
+            .then(data => {
+              if (data.phone) {
+                const formatted = data.phone.startsWith('+') ? data.phone : formatPhoneNumber(data.phone);
+                setValue('clientPhone', formatted);
+              }
+              if (data.firstName) {
+                const fullName = data.firstName + (data.lastName ? ` ${data.lastName}` : '');
+                setValue('clientName', fullName);
+              }
+            })
+            .catch(err => console.error('Error fetching saved user data:', err));
         }
 
         // Автозаполнение Telegram username
@@ -303,14 +318,14 @@ export default function BookingForm({ services, designs, timeSlots }: BookingFor
           setValue('clientTelegram', user.username);
         }
 
-        // Автозаполнение телефона из контакта (если есть)
+        // Автозаполнение телефона из контакта (если есть в initData)
         if (tg.initDataUnsafe.contact?.phone_number) {
           const phone = tg.initDataUnsafe.contact.phone_number;
           const formatted = phone.startsWith('+') ? phone : formatPhoneNumber(phone);
           setValue('clientPhone', formatted);
         }
 
-        // Автозаполнение имени
+        // Автозаполнение имени из initData
         if (tg.initDataUnsafe.contact?.first_name) {
           const fullName = tg.initDataUnsafe.contact.first_name +
             (tg.initDataUnsafe.contact.last_name ? ` ${tg.initDataUnsafe.contact.last_name}` : '');

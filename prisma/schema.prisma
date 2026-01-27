@@ -89,3 +89,14 @@ model Design {
   updatedAt   DateTime  @updatedAt
   bookings    Booking[]
 }
+
+model TelegramUser {
+  id          String   @id @default(cuid())
+  telegramId  String   @unique
+  phone       String?
+  firstName   String?
+  lastName    String?
+  username    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}

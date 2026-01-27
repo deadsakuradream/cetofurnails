@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
 
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '';
 const TELEGRAM_API_URL = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}`;
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://nogtikaif.vercel.app';
 
 export const dynamic = 'force-dynamic';
 
@@ -79,12 +81,33 @@ export async function POST(request: NextRequest) {
     const message = body.message;
     const chatId = message.chat.id;
     const text = message.text;
+    const from = message.from;
 
     // Обработка команды /start
     if (text === '/start') {
+      // Сохраняем или обновляем пользователя
+      try {
+        await prisma.telegramUser.upsert({
+          where: { telegramId: String(chatId) },
+          update: {
+            firstName: from.first_name,
+            lastName: from.last_name,
+            username: from.username,
+          },
+          create: {
+            telegramId: String(chatId),
+            firstName: from.first_name,
+            lastName: from.last_name,
+            username: from.username,
+          },
+        });
+      } catch (e) {
+        console.error('Error saving user:', e);
+      }
+
       // Если это админ (проверяем по TELEGRAM_ADMIN_ID), показываем его ID
       const adminId = process.env.TELEGRAM_ADMIN_ID;
-      let welcomeMessage = '👋 Добро пожаловать!\n\nДля записи на услугу нажмите кнопку "Записаться онлайн" слева снизу ↙️';
+      let welcomeMessage = '👋 Добро пожаловать!\n\nДля записи на услугу нажмите кнопку "📝 Записаться онлайн" слева снизу ↙️\n\nЧтобы номер телефона заполнился автоматически, нажмите "📱 Поделиться контактом".';
 
       if (adminId && String(chatId) === adminId) {
         welcomeMessage += `\n\n🔑 Ваш Telegram ID: ${chatId}\n(Используйте этот ID для настройки уведомлений)`;
@@ -102,7 +125,7 @@ export async function POST(request: NextRequest) {
             {
               text: '📝 Записаться онлайн',
               web_app: {
-                url: process.env.NEXT_PUBLIC_APP_URL || 'https://your-domain.vercel.app/booking',
+                url: `${APP_URL}/booking`,
               },
             },
           ],
@@ -134,16 +157,37 @@ export async function POST(request: NextRequest) {
       const firstName = contact.first_name;
       const lastName = contact.last_name || '';
 
+      // Сохраняем номер телефона в базу
+      try {
+        await prisma.telegramUser.upsert({
+          where: { telegramId: String(chatId) },
+          update: {
+            phone: phoneNumber,
+            firstName: firstName,
+            lastName: lastName || undefined,
+          },
+          create: {
+            telegramId: String(chatId),
+            phone: phoneNumber,
+            firstName: firstName,
+            lastName: lastName || undefined,
+          },
+        });
+        console.log(`Saved phone ${phoneNumber} for user ${chatId}`);
+      } catch (e) {
+        console.error('Error saving contact:', e);
+      }
+
       await sendMessage(
         chatId,
-        `✅ Спасибо! Ваш номер телефона сохранен: ${phoneNumber}\n\nТеперь вы можете записаться на услугу, нажав кнопку "📝 Записаться онлайн".`,
+        `✅ Спасибо! Ваш номер телефона сохранен: ${phoneNumber}\n\nТеперь при записи он будет заполнен автоматически! Нажмите "📝 Записаться онлайн".`,
         {
           keyboard: [
             [
               {
                 text: '📝 Записаться онлайн',
                 web_app: {
-                  url: process.env.NEXT_PUBLIC_APP_URL || 'https://your-domain.vercel.app/booking',
+                  url: `${APP_URL}/booking`,
                 },
               },
             ],
