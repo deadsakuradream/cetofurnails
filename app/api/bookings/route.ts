@@ -11,6 +11,7 @@ const bookingSchema = z.object({
   clientName: z.string().min(2),
   clientPhone: z.string().min(10),
   clientTelegram: z.string().optional().or(z.literal('')),
+  telegramUserId: z.string().optional().or(z.literal('')),
   serviceId: z.string(),
   timeSlotId: z.string(),
   notes: z.string().optional(),
