@@ -22,7 +22,7 @@ export default function RootLayout({
       <body className={inter.className}>
         <Script
           src="https://telegram.org/js/telegram-web-app.js"
-          strategy="afterInteractive"
+          strategy="beforeInteractive"
         />
         <TelegramAuthProvider>
           <Providers>{children}</Providers>
