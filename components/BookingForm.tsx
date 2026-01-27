@@ -246,7 +246,6 @@ export default function BookingForm({ services, timeSlots }: BookingFormProps) {
   const [selectedService, setSelectedService] = useState<string>('');
   const [selectedSlotId, setSelectedSlotId] = useState<string | null>(null);
   const [telegramUser, setTelegramUser] = useState<any>(null);
-  const [debugInfo, setDebugInfo] = useState<string>('');
 
   // Group services by category
   const groupedServices = services.reduce((acc, service) => {
@@ -287,19 +286,8 @@ export default function BookingForm({ services, timeSlots }: BookingFormProps) {
     if (typeof window !== 'undefined') {
       const tg = window.Telegram?.WebApp;
 
-      // Отладка: проверяем, что Telegram Web App загружен
-      let debug = '';
-      debug += `TelegramWebApp exists: ${!!tg}\n`;
-      debug += `initDataUnsafe exists: ${!!tg?.initDataUnsafe}\n`;
-      debug += `User exists: ${!!tg?.initDataUnsafe?.user}\n`;
-
       if (tg?.initDataUnsafe?.user) {
         const user = tg.initDataUnsafe.user;
-        debug += `User ID: ${user.id}\n`;
-        debug += `Username: ${user.username || 'N/A'}\n`;
-        debug += `First name: ${user.first_name}\n`;
-
-        console.log('✅ Telegram user found:', user);
 
         // Устанавливаем telegramUser для отображения статуса авторизации
         setTelegramUser(user);
@@ -307,7 +295,6 @@ export default function BookingForm({ services, timeSlots }: BookingFormProps) {
         // Автозаполнение Telegram username
         if (user.username) {
           setValue('clientTelegram', user.username);
-          console.log('✅ Username set:', user.username);
         }
 
         // Автозаполнение телефона из контакта (если есть)
@@ -315,7 +302,6 @@ export default function BookingForm({ services, timeSlots }: BookingFormProps) {
           const phone = tg.initDataUnsafe.contact.phone_number;
           const formatted = phone.startsWith('+') ? phone : formatPhoneNumber(phone);
           setValue('clientPhone', formatted);
-          console.log('✅ Phone set:', formatted);
         }
 
         // Автозаполнение имени
@@ -323,23 +309,11 @@ export default function BookingForm({ services, timeSlots }: BookingFormProps) {
           const fullName = tg.initDataUnsafe.contact.first_name +
             (tg.initDataUnsafe.contact.last_name ? ` ${tg.initDataUnsafe.contact.last_name}` : '');
           setValue('clientName', fullName);
-          console.log('✅ Name set from contact:', fullName);
         } else if (user.first_name) {
           const fullName = user.first_name + (user.last_name ? ` ${user.last_name}` : '');
           setValue('clientName', fullName);
-          console.log('✅ Name set from user:', fullName);
         }
-
-        debug += 'Status: ✅ Auto-login successful';
-      } else {
-        debug += 'Status: ❌ No user data - opened outside Telegram or Web App not configured';
-        console.log('❌ No Telegram user data found');
       }
-
-      setDebugInfo(debug);
-      console.log('🔍 Telegram Web App:', tg);
-      console.log('🔍 initDataUnsafe:', tg?.initDataUnsafe);
-      console.log('🔍 User data:', tg?.initDataUnsafe?.user);
     }
   }, [setValue]);
 
@@ -392,14 +366,6 @@ export default function BookingForm({ services, timeSlots }: BookingFormProps) {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
-      {/* Отладочная информация (только для тестирования) */}
-      {debugInfo && (
-        <div className="bg-yellow-50 border-2 border-yellow-400 rounded-lg p-4">
-          <h4 className="font-bold text-yellow-900 mb-2">🔧 Debug Info (Telegram Web App)</h4>
-          <pre className="text-xs text-yellow-800 whitespace-pre-wrap font-mono">{debugInfo}</pre>
-        </div>
-      )}
-
       {/* Step 1: Service Selection */}
       <div>
         <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
