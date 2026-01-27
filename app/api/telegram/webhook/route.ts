@@ -172,7 +172,10 @@ export async function POST(request: NextRequest) {
 
       await sendMessage(
         chatId,
-        `✅ Спасибо! Ваш номер телефона сохранен: ${phoneNumber}\n\nТеперь нажмите кнопку "Записаться" слева снизу ↙️ для записи на услугу.`
+        `✅ Спасибо! Ваш номер телефона сохранен: ${phoneNumber}\n\nТеперь нажмите кнопку "Записаться" слева снизу ↙️ для записи на услугу.`,
+        {
+          remove_keyboard: true
+        }
       );
     }
 
