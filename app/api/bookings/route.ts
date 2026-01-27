@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
 import { getPhoneDigits } from '@/lib/phoneMask';
-import { notifyAdminAboutBooking } from '@/lib/telegram-notifications';
+import { notifyAdminAboutBooking, notifyUserAboutBooking } from '@/lib/telegram-notifications';
 import { waitUntil } from '@vercel/functions';
 
 export const dynamic = 'force-dynamic';
@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
 
     // Нормализуем номер телефона (сохраняем только цифры)
     const normalizedPhone = getPhoneDigits(data.clientPhone);
-    
+
     // Создаем запись
     const booking = await prisma.booking.create({
       data: {
@@ -74,12 +74,12 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Отправляем уведомление админу в Telegram
+    // Отправляем уведомления в Telegram
     // Используем waitUntil для фоновых задач на Vercel
-    // Это гарантирует, что запрос выполнится даже после возврата ответа клиенту
-    console.log('Starting to send Telegram notification...');
-    
-    const notificationPromise = notifyAdminAboutBooking({
+    console.log('Starting to send Telegram notifications...');
+
+    // Уведомление админу
+    const adminNotificationPromise = notifyAdminAboutBooking({
       clientName: booking.clientName,
       clientPhone: booking.clientPhone,
       clientTelegram: booking.clientTelegram,
@@ -88,22 +88,46 @@ export async function POST(request: NextRequest) {
       time: booking.timeSlot.startTime,
       notes: booking.notes,
     })
-    .then(result => {
-      console.log('Telegram notification result:', result);
-      if (!result) {
-        console.warn('Telegram notification returned false - message may not have been sent');
-      }
-      return result;
-    })
-    .catch(error => {
-      console.error('Failed to send Telegram notification:', error);
-      console.error('Error stack:', error.stack);
-      return false;
-    });
-    
+      .then(result => {
+        console.log('Admin Telegram notification result:', result);
+        if (!result) {
+          console.warn('Admin Telegram notification returned false - message may not have been sent');
+        }
+        return result;
+      })
+      .catch(error => {
+        console.error('Failed to send admin Telegram notification:', error);
+        console.error('Error stack:', error.stack);
+        return false;
+      });
+
+    // Уведомление пользователю (если указан Telegram)
+    let userNotificationPromise = Promise.resolve(false);
+    if (booking.clientTelegram) {
+      userNotificationPromise = notifyUserAboutBooking({
+        clientTelegram: booking.clientTelegram,
+        clientName: booking.clientName,
+        serviceName: booking.service.name,
+        date: booking.timeSlot.date,
+        time: booking.timeSlot.startTime,
+      })
+        .then(result => {
+          console.log('User Telegram notification result:', result);
+          if (!result) {
+            console.warn('User Telegram notification returned false - message may not have been sent');
+          }
+          return result;
+        })
+        .catch(error => {
+          console.error('Failed to send user Telegram notification:', error);
+          console.error('Error stack:', error.stack);
+          return false;
+        });
+    }
+
     // Используем waitUntil для фоновых задач на Vercel
-    // Это гарантирует выполнение промиса даже после возврата ответа
-    waitUntil(notificationPromise);
+    // Это гарантирует выполнение промисов даже после возврата ответа
+    waitUntil(Promise.all([adminNotificationPromise, userNotificationPromise]));
 
     return NextResponse.json({ booking }, { status: 201 });
   } catch (error) {
