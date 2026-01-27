@@ -28,11 +28,11 @@ export function TelegramAuthProvider({ children }: { children: ReactNode }) {
     // Check if we're running inside Telegram
     const checkTelegram = () => {
       if (typeof window !== 'undefined') {
-        const tg = window.TelegramWebApp;
-        
+        const tg = window.Telegram?.WebApp;
+
         if (tg) {
           tg.ready();
-          
+
           if (tg.initDataUnsafe?.user) {
             setUser(tg.initDataUnsafe.user as TelegramUser);
           }
@@ -46,7 +46,7 @@ export function TelegramAuthProvider({ children }: { children: ReactNode }) {
 
   const login = () => {
     if (typeof window !== 'undefined') {
-      const tg = window.TelegramWebApp;
+      const tg = window.Telegram?.WebApp;
       if (tg) {
         tg.expand();
       }

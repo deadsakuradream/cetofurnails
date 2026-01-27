@@ -285,7 +285,7 @@ export default function BookingForm({ services, timeSlots }: BookingFormProps) {
   // Telegram Web App автозаполнение (при открытии через бота)
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const tg = window.TelegramWebApp;
+      const tg = window.Telegram?.WebApp;
 
       // Отладка: проверяем, что Telegram Web App загружен
       let debug = '';
