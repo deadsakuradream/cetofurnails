@@ -285,8 +285,16 @@ export default function BookingForm({ services, timeSlots }: BookingFormProps) {
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const tg = window.TelegramWebApp;
+
+      // Отладка: проверяем, что Telegram Web App загружен
+      console.log('🔍 Telegram Web App:', tg);
+      console.log('🔍 initDataUnsafe:', tg?.initDataUnsafe);
+      console.log('🔍 User data:', tg?.initDataUnsafe?.user);
+
       if (tg?.initDataUnsafe?.user) {
         const user = tg.initDataUnsafe.user;
+
+        console.log('✅ Telegram user found:', user);
 
         // Устанавливаем telegramUser для отображения статуса авторизации
         setTelegramUser(user);
@@ -294,6 +302,7 @@ export default function BookingForm({ services, timeSlots }: BookingFormProps) {
         // Автозаполнение Telegram username
         if (user.username) {
           setValue('clientTelegram', user.username);
+          console.log('✅ Username set:', user.username);
         }
 
         // Автозаполнение телефона из контакта (если есть)
@@ -301,6 +310,7 @@ export default function BookingForm({ services, timeSlots }: BookingFormProps) {
           const phone = tg.initDataUnsafe.contact.phone_number;
           const formatted = phone.startsWith('+') ? phone : formatPhoneNumber(phone);
           setValue('clientPhone', formatted);
+          console.log('✅ Phone set:', formatted);
         }
 
         // Автозаполнение имени
@@ -308,10 +318,14 @@ export default function BookingForm({ services, timeSlots }: BookingFormProps) {
           const fullName = tg.initDataUnsafe.contact.first_name +
             (tg.initDataUnsafe.contact.last_name ? ` ${tg.initDataUnsafe.contact.last_name}` : '');
           setValue('clientName', fullName);
+          console.log('✅ Name set from contact:', fullName);
         } else if (user.first_name) {
           const fullName = user.first_name + (user.last_name ? ` ${user.last_name}` : '');
           setValue('clientName', fullName);
+          console.log('✅ Name set from user:', fullName);
         }
+      } else {
+        console.log('❌ No Telegram user data found');
       }
     }
   }, [setValue]);
