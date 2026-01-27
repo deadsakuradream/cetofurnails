@@ -122,6 +122,8 @@ export async function notifyAdminAboutBooking(bookingData: {
   clientPhone: string;
   clientTelegram: string | null;
   serviceName: string;
+  designName?: string | null;
+  totalPrice?: number;
   date: Date | string;
   time: string;
   notes?: string | null;
@@ -171,6 +173,14 @@ export async function notifyAdminAboutBooking(bookingData: {
   message += `⏰ <b>Время:</b> ${bookingData.time}\n`;
   message += `💅 <b>Услуга:</b> ${escapeHtml(bookingData.serviceName)}\n`;
 
+  if (bookingData.designName) {
+    message += `🎨 <b>Дизайн:</b> ${escapeHtml(bookingData.designName)}\n`;
+  }
+
+  if (bookingData.totalPrice) {
+    message += `💰 <b>Итого:</b> ${bookingData.totalPrice} ₽\n`;
+  }
+
   if (bookingData.notes) {
     message += `\n📝 <b>Комментарий:</b> ${escapeHtml(bookingData.notes)}`;
   }
@@ -218,6 +228,8 @@ export async function notifyUserAboutBooking(bookingData: {
   telegramUserId?: string | null;
   clientName: string;
   serviceName: string;
+  designName?: string | null;
+  totalPrice?: number;
   date: Date | string;
   time: string;
 }): Promise<boolean> {
@@ -259,8 +271,15 @@ export async function notifyUserAboutBooking(bookingData: {
   message += `Здравствуйте, ${escapeHtml(bookingData.clientName)}!\n\n`;
   message += `Ваша запись успешно создана:\n\n`;
   message += `💅 <b>Услуга:</b> ${escapeHtml(bookingData.serviceName)}\n`;
+  if (bookingData.designName) {
+    message += `🎨 <b>Дизайн:</b> ${escapeHtml(bookingData.designName)}\n`;
+  }
   message += `📅 <b>Дата:</b> ${formattedDate}\n`;
-  message += `⏰ <b>Время:</b> ${bookingData.time}\n\n`;
+  message += `⏰ <b>Время:</b> ${bookingData.time}\n`;
+  if (bookingData.totalPrice) {
+    message += `💰 <b>Итого:</b> ${bookingData.totalPrice} ₽\n`;
+  }
+  message += `\n`;
   message += `Ждем вас! 💖\n\n`;
   message += `<i>Если нужно отменить или перенести запись, свяжитесь с нами.</i>`;
 
@@ -275,6 +294,8 @@ export async function sendBookingReminder(bookingData: {
   telegramUserId?: string | null;
   clientName: string;
   serviceName: string;
+  designName?: string | null;
+  totalPrice?: number;
   date: Date | string;
   time: string;
 }): Promise<boolean> {
@@ -316,8 +337,15 @@ export async function sendBookingReminder(bookingData: {
   message += `Здравствуйте, ${escapeHtml(bookingData.clientName)}!\n\n`;
   message += `Напоминаем, что завтра у вас запись:\n\n`;
   message += `💅 <b>Услуга:</b> ${escapeHtml(bookingData.serviceName)}\n`;
+  if (bookingData.designName) {
+    message += `🎨 <b>Дизайн:</b> ${escapeHtml(bookingData.designName)}\n`;
+  }
   message += `📅 <b>Дата:</b> ${formattedDate}\n`;
-  message += `⏰ <b>Время:</b> ${bookingData.time}\n\n`;
+  message += `⏰ <b>Время:</b> ${bookingData.time}\n`;
+  if (bookingData.totalPrice) {
+    message += `💰 <b>Итого:</b> ${bookingData.totalPrice} ₽\n`;
+  }
+  message += `\n`;
   message += `Будем рады вас видеть! 💖\n\n`;
   message += `<i>Если не сможете прийти, пожалуйста, предупредите нас заранее.</i>`;
 

@@ -13,6 +13,7 @@ const bookingSchema = z.object({
   clientTelegram: z.string().optional().or(z.literal('')),
   telegramUserId: z.string().optional().or(z.literal('')),
   serviceId: z.string(),
+  designId: z.string().optional(),
   timeSlotId: z.string(),
   notes: z.string().optional(),
 });
@@ -67,11 +68,13 @@ export async function POST(request: NextRequest) {
         clientPhone: normalizedPhone, // Keep normalized phone
         clientTelegram: data.clientTelegram || null, // Keep handling for null
         telegramUserId: data.telegramUserId || null, // Add telegramUserId
+        designId: data.designId || null,
         notes: data.notes || null,
         status: 'pending',
       },
       include: {
         service: true,
+        design: true, // Include design details
         timeSlot: true,
       },
     });
@@ -86,6 +89,8 @@ export async function POST(request: NextRequest) {
       clientPhone: booking.clientPhone,
       clientTelegram: booking.clientTelegram,
       serviceName: booking.service.name,
+      designName: booking.design?.name,
+      totalPrice: booking.service.price + (booking.design?.price || 0),
       date: booking.timeSlot.date,
       time: booking.timeSlot.startTime,
       notes: booking.notes,
@@ -111,6 +116,8 @@ export async function POST(request: NextRequest) {
         telegramUserId: booking.telegramUserId,
         clientName: booking.clientName,
         serviceName: booking.service.name,
+        designName: booking.design?.name,
+        totalPrice: booking.service.price + (booking.design?.price || 0),
         date: booking.timeSlot.date,
         time: booking.timeSlot.startTime,
       })

@@ -1,6 +1,8 @@
 import { prisma } from '@/lib/prisma';
 import { formatPrice, formatDate } from '@/lib/utils';
 import BookingForm from '@/components/BookingForm';
+import Navigation from '@/components/Navigation';
+
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 20;
@@ -43,8 +45,16 @@ async function getAvailableTimeSlots() {
   return slots.filter(slot => slot.bookings.length === 0);
 }
 
+async function getDesigns() {
+  return await prisma.design.findMany({
+    where: { isActive: true },
+    orderBy: { name: 'asc' },
+  });
+}
+
 export default async function BookingPage() {
   const services = await getServices();
+  const designs = await getDesigns();
   const timeSlots = await getAvailableTimeSlots();
 
   // Сериализуем Date объекты для передачи клиенту
@@ -81,10 +91,15 @@ export default async function BookingPage() {
           </h2>
 
           <div className="bg-white rounded-lg shadow-lg p-6 md:p-8">
-            <BookingForm services={services} timeSlots={serializedTimeSlots} />
+            <BookingForm
+              services={services}
+              designs={designs}
+              timeSlots={serializedTimeSlots}
+            />
           </div>
         </div>
       </div>
+      <Navigation />
     </div>
   );
 }

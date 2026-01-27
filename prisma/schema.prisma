@@ -69,10 +69,22 @@ model Booking {
   telegramUserId String?  // Telegram user ID (chat_id) для отправки уведомлений
   serviceId      String
   service        Service  @relation(fields: [serviceId], references: [id])
+  designId       String?
+  design         Design?  @relation(fields: [designId], references: [id])
   timeSlotId     String
   timeSlot       TimeSlot @relation(fields: [timeSlotId], references: [id])
   status         String   @default("pending") // pending, confirmed, cancelled
   notes          String?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
+}
+
+model Design {
+  id        String    @id @default(cuid())
+  name      String
+  price     Float
+  isActive  Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  bookings  Booking[]
 }

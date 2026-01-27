@@ -6,11 +6,12 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { formatPrice } from '@/lib/utils';
 import { formatPhoneNumber, getPhoneDigits, validatePhoneNumber } from '@/lib/phoneMask';
-import { Service, Category, TimeSlot } from '@prisma/client';
+import { Service, Category, TimeSlot, Design } from '@prisma/client';
 import TelegramLoginButton from './TelegramLoginButton';
 
 const bookingSchema = z.object({
   serviceId: z.string().min(1, 'Выберите услугу'),
+  designId: z.string().optional(),
   timeSlotId: z.string().min(1, 'Выберите время'),
   clientName: z.string().min(2, 'Введите имя'),
   clientPhone: z.string().min(10, 'Введите корректный номер телефона'),
@@ -25,6 +26,7 @@ type ServiceWithCategory = Service & { category: Category | null };
 
 interface BookingFormProps {
   services: ServiceWithCategory[];
+  designs: Design[];
   timeSlots: Array<{
     id: string;
     date: string | Date; // Serialized date can be string
@@ -238,10 +240,11 @@ function Calendar({ slots, selectedSlotId, onSelectSlot }: CalendarProps) {
   );
 }
 
-export default function BookingForm({ services, timeSlots }: BookingFormProps) {
+export default function BookingForm({ services, designs, timeSlots }: BookingFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<'success' | 'error' | null>(null);
   const [selectedService, setSelectedService] = useState<string>('');
+  const [selectedDesign, setSelectedDesign] = useState<string>('');
   const [selectedSlotId, setSelectedSlotId] = useState<string | null>(null);
   const [telegramUser, setTelegramUser] = useState<any>(null);
 
@@ -336,8 +339,9 @@ export default function BookingForm({ services, timeSlots }: BookingFormProps) {
 
   useEffect(() => {
     if (selectedService) setValue('serviceId', selectedService);
+    if (selectedDesign) setValue('designId', selectedDesign);
     if (selectedSlotId) setValue('timeSlotId', selectedSlotId);
-  }, [selectedService, selectedSlotId, setValue]);
+  }, [selectedService, selectedDesign, selectedSlotId, setValue]);
 
   const onSubmit = async (data: BookingFormData) => {
     setIsSubmitting(true);
@@ -352,6 +356,7 @@ export default function BookingForm({ services, timeSlots }: BookingFormProps) {
         setSubmitStatus('success');
         reset();
         setSelectedService('');
+        setSelectedDesign('');
         setSelectedSlotId(null);
       } else {
         const error = await response.json();
@@ -366,6 +371,8 @@ export default function BookingForm({ services, timeSlots }: BookingFormProps) {
   };
 
   const selectedServiceData = services.find(s => s.id === selectedService);
+  const selectedDesignData = designs.find(d => d.id === selectedDesign);
+  const totalPrice = (selectedServiceData?.price || 0) + (selectedDesignData?.price || 0);
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
@@ -423,11 +430,59 @@ export default function BookingForm({ services, timeSlots }: BookingFormProps) {
         )}
       </div>
 
-      {/* Step 2: Date & Time */}
+      {/* Step 2: Design Selection (Optional) */}
       {selectedService && (
         <div className="animate-fadeIn">
           <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
             <span className="w-8 h-8 bg-primary-600 text-white rounded-full flex items-center justify-center text-sm">2</span>
+            Выберите дизайн (необязательно)
+          </h3>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* Option "No Design" */}
+            <div
+              onClick={() => setSelectedDesign('')}
+              className={`
+                p-4 rounded-xl cursor-pointer transition-all duration-300
+                border-2 hover:scale-[1.02] hover:shadow-lg
+                ${!selectedDesign
+                  ? 'border-primary-600 bg-primary-50 shadow-lg'
+                  : 'border-gray-200 bg-white hover:border-primary-300'
+                }
+              `}
+            >
+              <h4 className="font-bold text-gray-900">Без дизайна</h4>
+              <p className="text-sm text-gray-500">Только маникюр</p>
+            </div>
+
+            {designs.map(design => (
+              <div
+                key={design.id}
+                onClick={() => setSelectedDesign(design.id)}
+                className={`
+                  p-4 rounded-xl cursor-pointer transition-all duration-300
+                  border-2 hover:scale-[1.02] hover:shadow-lg
+                  ${selectedDesign === design.id
+                    ? 'border-primary-600 bg-primary-50 shadow-lg'
+                    : 'border-gray-200 bg-white hover:border-primary-300'
+                  }
+                `}
+              >
+                <div className="flex justify-between items-center mb-1">
+                  <h4 className="font-bold text-gray-900">{design.name}</h4>
+                  <span className="font-bold text-primary-600">{formatPrice(design.price)}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Step 3: Date & Time */}
+      {selectedService && (
+        <div className="animate-fadeIn">
+          <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+            <span className="w-8 h-8 bg-primary-600 text-white rounded-full flex items-center justify-center text-sm">3</span>
             Выберите дату и время
           </h3>
           <Calendar
@@ -441,19 +496,23 @@ export default function BookingForm({ services, timeSlots }: BookingFormProps) {
         </div>
       )}
 
-      {/* Step 3: Contact Info */}
+      {/* Step 4: Contact Info */}
       {selectedSlotId && (
         <div className="animate-fadeIn">
           <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-            <span className="w-8 h-8 bg-primary-600 text-white rounded-full flex items-center justify-center text-sm">3</span>
+            <span className="w-8 h-8 bg-primary-600 text-white rounded-full flex items-center justify-center text-sm">4</span>
             Ваши контакты
           </h3>
 
           <div className="bg-primary-50 border border-primary-200 rounded-xl p-4 mb-6">
             <h4 className="font-semibold text-gray-900 mb-2">Ваша запись:</h4>
-            <div className="text-sm text-gray-700">
-              <p>📌 <strong>{selectedServiceData?.name}</strong> - {formatPrice(selectedServiceData?.price || 0)}</p>
-              <p>⏰ {timeSlots.find(s => s.id === selectedSlotId)?.startTime}</p>
+            <div className="text-sm text-gray-700 space-y-1">
+              <p>💅 <strong>Услуга:</strong> {selectedServiceData?.name}</p>
+              {selectedDesignData && (
+                <p>🎨 <strong>Дизайн:</strong> {selectedDesignData.name}</p>
+              )}
+              <p>💰 <strong>Итого:</strong> {formatPrice(totalPrice)}</p>
+              <p>⏰ <strong>Время:</strong> {timeSlots.find(s => s.id === selectedSlotId)?.startTime}</p>
             </div>
           </div>
 
@@ -540,18 +599,16 @@ export default function BookingForm({ services, timeSlots }: BookingFormProps) {
               />
             </div>
           </div>
-        </div>
-      )}
 
-      {selectedSlotId && (
-        <div className="animate-fadeIn">
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="w-full bg-primary-600 text-white py-4 rounded-xl font-semibold text-lg hover:bg-primary-700 transition disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl"
-          >
-            {isSubmitting ? '⏳ Отправка...' : '✅ Записаться'}
-          </button>
+          <div className="mt-6">
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="w-full bg-primary-600 text-white py-4 rounded-xl font-semibold text-lg hover:bg-primary-700 transition disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl"
+            >
+              {isSubmitting ? '⏳ Отправка...' : '✅ Записаться'}
+            </button>
+          </div>
         </div>
       )}
 
