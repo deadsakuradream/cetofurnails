@@ -7,6 +7,7 @@ import { z } from 'zod';
 import { formatPrice } from '@/lib/utils';
 import { formatPhoneNumber, getPhoneDigits, validatePhoneNumber } from '@/lib/phoneMask';
 import { Service, Category, TimeSlot } from '@prisma/client';
+import TelegramLoginButton from './TelegramLoginButton';
 
 const bookingSchema = z.object({
   clientName: z.string({ required_error: 'Обязательное поле' }).min(2, 'Имя должно содержать минимум 2 символа'),
@@ -244,6 +245,7 @@ export default function BookingForm({ services, timeSlots }: BookingFormProps) {
   const [submitStatus, setSubmitStatus] = useState<'success' | 'error' | null>(null);
   const [selectedService, setSelectedService] = useState<string>('');
   const [selectedSlotId, setSelectedSlotId] = useState<string | null>(null);
+  const [telegramUser, setTelegramUser] = useState<any>(null);
 
   // Group services by category
   const groupedServices = services.reduce((acc, service) => {
@@ -259,9 +261,7 @@ export default function BookingForm({ services, timeSlots }: BookingFormProps) {
     return a.localeCompare(b);
   });
 
-  const [expandedCategories, setExpandedCategories] = useState<string[]>(
-    sortedCategories.length > 0 ? [sortedCategories[0]] : []
-  );
+  const [expandedCategories, setExpandedCategories] = useState<string[]>([]);
 
   const toggleCategory = (category: string) => {
     setExpandedCategories(prev =>
@@ -302,6 +302,20 @@ export default function BookingForm({ services, timeSlots }: BookingFormProps) {
       }
     }
   }, [setValue]);
+
+  // Обработчик Telegram Login
+  const handleTelegramAuth = (user: any) => {
+    setTelegramUser(user);
+
+    // Автозаполнение имени
+    const fullName = `${user.first_name}${user.last_name ? ` ${user.last_name}` : ''}`;
+    setValue('clientName', fullName);
+
+    // Автозаполнение Telegram username
+    if (user.username) {
+      setValue('clientTelegram', user.username);
+    }
+  };
 
   useEffect(() => {
     if (selectedService) setValue('serviceId', selectedService);
@@ -425,6 +439,37 @@ export default function BookingForm({ services, timeSlots }: BookingFormProps) {
               <p>⏰ {timeSlots.find(s => s.id === selectedSlotId)?.startTime}</p>
             </div>
           </div>
+
+          {/* Telegram Login */}
+          {!telegramUser && process.env.NEXT_PUBLIC_TELEGRAM_BOT_NAME && (
+            <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4">
+              <p className="text-sm text-gray-700 mb-3">
+                💡 Войдите через Telegram, чтобы автоматически заполнить ваши данные
+              </p>
+              <TelegramLoginButton
+                botName={process.env.NEXT_PUBLIC_TELEGRAM_BOT_NAME}
+                onAuth={handleTelegramAuth}
+                buttonSize="medium"
+                cornerRadius={8}
+              />
+            </div>
+          )}
+
+          {telegramUser && (
+            <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-4 flex items-center gap-3">
+              <svg className="w-6 h-6 text-green-600" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+              </svg>
+              <div>
+                <p className="text-sm font-semibold text-green-900">
+                  Вы вошли как {telegramUser.first_name}
+                </p>
+                <p className="text-xs text-green-700">
+                  Данные автоматически заполнены
+                </p>
+              </div>
+            </div>
+          )}
 
           <div className="space-y-4">
             <div>
