@@ -64,7 +64,7 @@ export default async function BookingPage() {
   }));
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-pink-50 to-white">
+    <div className="min-h-screen bg-gradient-to-b from-pink-50 to-white pb-32">
       <header className="bg-white shadow-sm">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center gap-4">

@@ -281,7 +281,7 @@ export async function notifyUserAboutBooking(bookingData: {
   }
   message += `\n`;
   message += `Ждем вас! 💖\n\n`;
-  message += `<i>Если нужно отменить или перенести запись, свяжитесь с нами.</i>`;
+  message += `<i>Если нужно отменить или перенести запись, напишите нам: @cetofur</i>`;
 
   return await sendTelegramMessage(userId, message, 'HTML');
 }

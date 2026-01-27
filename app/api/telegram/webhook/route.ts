@@ -83,12 +83,12 @@ export async function POST(request: NextRequest) {
     if (text === '/start') {
       // Если это админ (проверяем по TELEGRAM_ADMIN_ID), показываем его ID
       const adminId = process.env.TELEGRAM_ADMIN_ID;
-      let welcomeMessage = '👋 Добро пожаловать!\n\nДля записи на услугу нажмите кнопку ниже или поделитесь контактом для быстрой авторизации.';
-      
+      let welcomeMessage = '👋 Добро пожаловать!\n\nДля записи на услугу нажмите кнопку "Записаться онлайн" слева снизу ↙️';
+
       if (adminId && String(chatId) === adminId) {
         welcomeMessage += `\n\n🔑 Ваш Telegram ID: ${chatId}\n(Используйте этот ID для настройки уведомлений)`;
       }
-      
+
       const replyMarkup = {
         keyboard: [
           [
@@ -116,7 +116,7 @@ export async function POST(request: NextRequest) {
         replyMarkup
       );
     }
-    
+
     // Команда для получения ID (для настройки уведомлений)
     if (text === '/myid' || text === '/id') {
       await sendMessage(
