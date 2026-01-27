@@ -3,23 +3,23 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-interface DeleteButtonProps {
-    categoryId: string;
+interface DesignDeleteButtonProps {
+    designId: string;
 }
 
-export default function DeleteButton({ categoryId }: DeleteButtonProps) {
+export default function DesignDeleteButton({ designId }: DesignDeleteButtonProps) {
     const router = useRouter();
     const [isDeleting, setIsDeleting] = useState(false);
 
     const handleDelete = async () => {
-        if (!confirm('Вы уверены, что хотите удалить эту категорию?')) {
+        if (!confirm('Вы уверены, что хотите удалить этот дизайн?')) {
             return;
         }
 
         setIsDeleting(true);
 
         try {
-            const response = await fetch(`/api/admin/categories/${categoryId}`, {
+            const response = await fetch(`/api/admin/designs/${designId}`, {
                 method: 'DELETE',
             });
 
@@ -27,7 +27,7 @@ export default function DeleteButton({ categoryId }: DeleteButtonProps) {
                 router.refresh();
             } else {
                 const data = await response.json();
-                alert(data.message || 'Ошибка при удалении категории');
+                alert(data.message || 'Ошибка при удалении дизайна');
             }
         } catch (error) {
             alert('Произошла ошибка');
