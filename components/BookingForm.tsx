@@ -247,6 +247,7 @@ export default function BookingForm({ services, designs, timeSlots }: BookingFor
   const [selectedDesign, setSelectedDesign] = useState<string>('');
   const [selectedSlotId, setSelectedSlotId] = useState<string | null>(null);
   const [telegramUser, setTelegramUser] = useState<any>(null);
+  const [userInteracted, setUserInteracted] = useState(false); // Защита от автоматической отправки
 
   // Group services by category
   const groupedServices = services.reduce((acc, service) => {
@@ -359,6 +360,12 @@ export default function BookingForm({ services, designs, timeSlots }: BookingFor
   }, [selectedService, selectedDesign, selectedSlotId, setValue]);
 
   const onSubmit = async (data: BookingFormData) => {
+    // Защита от автоматической отправки - требуем явного взаимодействия пользователя
+    if (!userInteracted) {
+      console.log('Blocked auto-submit: user has not interacted with the form');
+      return;
+    }
+
     setIsSubmitting(true);
     setSubmitStatus(null);
     try {
@@ -373,6 +380,7 @@ export default function BookingForm({ services, designs, timeSlots }: BookingFor
         setSelectedService('');
         setSelectedDesign('');
         setSelectedSlotId(null);
+        setUserInteracted(false); // Сбрасываем флаг после успешной отправки
       } else {
         const error = await response.json();
         throw new Error(error.message || 'Ошибка при создании записи');
@@ -619,6 +627,7 @@ export default function BookingForm({ services, designs, timeSlots }: BookingFor
             <button
               type="submit"
               disabled={isSubmitting}
+              onClick={() => setUserInteracted(true)}
               className="w-full bg-primary-600 text-white py-4 rounded-xl font-semibold text-lg hover:bg-primary-700 transition disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl"
             >
               {isSubmitting ? '⏳ Отправка...' : '✅ Записаться'}
