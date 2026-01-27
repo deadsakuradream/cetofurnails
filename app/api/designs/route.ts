@@ -12,6 +12,7 @@ const getDesignsSchema = z.object({
 
 const createDesignSchema = z.object({
     name: z.string().min(1, 'Название обязательно'),
+    description: z.string().optional(),
     price: z.number().min(0, 'Цена не может быть отрицательной'),
     isActive: z.boolean().optional(),
 });
@@ -52,6 +53,7 @@ export async function POST(request: NextRequest) {
         const design = await prisma.design.create({
             data: {
                 name: data.name,
+                description: data.description,
                 price: data.price,
                 isActive: data.isActive ?? true,
             },

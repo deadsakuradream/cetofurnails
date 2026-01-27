@@ -6,6 +6,7 @@ import { authOptions } from '@/lib/auth-options';
 
 const updateDesignSchema = z.object({
     name: z.string().min(1).optional(),
+    description: z.string().optional(),
     price: z.number().min(0).optional(),
     isActive: z.boolean().optional(),
 });
