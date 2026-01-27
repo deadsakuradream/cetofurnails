@@ -69,6 +69,7 @@ async function sendMessage(chatId: number, text: string, replyMarkup?: any) {
 export async function POST(request: NextRequest) {
   try {
     const body: TelegramUpdate = await request.json();
+    console.log('Webhook received:', JSON.stringify(body, null, 2));
 
     // Проверяем, что это сообщение
     if (!body.message) {

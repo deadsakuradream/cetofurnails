@@ -22,7 +22,13 @@ export default async function EditDesignPage({ params }: PageProps) {
     return (
         <div>
             <h1 className="text-2xl font-bold mb-6">Редактировать дизайн</h1>
-            <DesignForm initialData={design} isEditing />
+            <DesignForm
+                initialData={{
+                    ...design,
+                    description: design.description || undefined
+                }}
+                isEditing
+            />
         </div>
     );
 }
