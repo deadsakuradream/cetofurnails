@@ -281,22 +281,35 @@ export default function BookingForm({ services, timeSlots }: BookingFormProps) {
     resolver: zodResolver(bookingSchema),
   });
 
-  // Telegram Auth Effect (removed for brevity, keeping existing logic)
+  // Telegram Web App автозаполнение (при открытии через бота)
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const tg = window.TelegramWebApp;
-      if (tg?.initDataUnsafe) {
-        if (tg.initDataUnsafe.user?.username) setValue('clientTelegram', tg.initDataUnsafe.user.username);
+      if (tg?.initDataUnsafe?.user) {
+        const user = tg.initDataUnsafe.user;
+
+        // Устанавливаем telegramUser для отображения статуса авторизации
+        setTelegramUser(user);
+
+        // Автозаполнение Telegram username
+        if (user.username) {
+          setValue('clientTelegram', user.username);
+        }
+
+        // Автозаполнение телефона из контакта (если есть)
         if (tg.initDataUnsafe.contact?.phone_number) {
           const phone = tg.initDataUnsafe.contact.phone_number;
           const formatted = phone.startsWith('+') ? phone : formatPhoneNumber(phone);
           setValue('clientPhone', formatted);
         }
+
+        // Автозаполнение имени
         if (tg.initDataUnsafe.contact?.first_name) {
-          const fullName = tg.initDataUnsafe.contact.first_name + (tg.initDataUnsafe.contact.last_name ? ` ${tg.initDataUnsafe.contact.last_name}` : '');
+          const fullName = tg.initDataUnsafe.contact.first_name +
+            (tg.initDataUnsafe.contact.last_name ? ` ${tg.initDataUnsafe.contact.last_name}` : '');
           setValue('clientName', fullName);
-        } else if (tg.initDataUnsafe.user?.first_name) {
-          const fullName = tg.initDataUnsafe.user.first_name + (tg.initDataUnsafe.user.last_name ? ` ${tg.initDataUnsafe.user.last_name}` : '');
+        } else if (user.first_name) {
+          const fullName = user.first_name + (user.last_name ? ` ${user.last_name}` : '');
           setValue('clientName', fullName);
         }
       }
