@@ -10,14 +10,12 @@ import { Service, Category, TimeSlot } from '@prisma/client';
 import TelegramLoginButton from './TelegramLoginButton';
 
 const bookingSchema = z.object({
-  clientName: z.string({ required_error: 'Обязательное поле' }).min(2, 'Имя должно содержать минимум 2 символа'),
-  clientPhone: z.string({ required_error: 'Обязательное поле' }).refine(
-    (val) => validatePhoneNumber(val),
-    { message: 'Введите корректный номер телефона в формате +7 (XXX) XXX-XX-XX' }
-  ),
-  clientTelegram: z.string().optional().or(z.literal('')),
-  serviceId: z.string({ required_error: 'Выберите услугу' }).min(1, 'Выберите услугу'),
-  timeSlotId: z.string({ required_error: 'Выберите время' }).min(1, 'Выберите время'),
+  serviceId: z.string().min(1, 'Выберите услугу'),
+  timeSlotId: z.string().min(1, 'Выберите время'),
+  clientName: z.string().min(2, 'Введите имя'),
+  clientPhone: z.string().min(10, 'Введите корректный номер телефона'),
+  clientTelegram: z.string().optional(),
+  telegramUserId: z.string().optional(),
   notes: z.string().optional(),
 });
 
@@ -291,6 +289,11 @@ export default function BookingForm({ services, timeSlots }: BookingFormProps) {
 
         // Устанавливаем telegramUser для отображения статуса авторизации
         setTelegramUser(user);
+
+        // Сохраняем Telegram ID
+        if (user.id) {
+          setValue('telegramUserId', user.id.toString());
+        }
 
         // Автозаполнение Telegram username
         if (user.username) {

@@ -62,16 +62,17 @@ model TimeSlot {
 }
 
 model Booking {
-  id          String   @id @default(cuid())
-  clientName  String
-  clientPhone String
+  id             String   @id @default(cuid())
+  clientName     String
+  clientPhone    String
   clientTelegram String?
-  serviceId   String
-  service     Service  @relation(fields: [serviceId], references: [id])
-  timeSlotId  String
-  timeSlot    TimeSlot @relation(fields: [timeSlotId], references: [id])
-  status      String   @default("pending") // pending, confirmed, cancelled
-  notes       String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  telegramUserId String?  // Telegram user ID (chat_id) для отправки уведомлений
+  serviceId      String
+  service        Service  @relation(fields: [serviceId], references: [id])
+  timeSlotId     String
+  timeSlot       TimeSlot @relation(fields: [timeSlotId], references: [id])
+  status         String   @default("pending") // pending, confirmed, cancelled
+  notes          String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 }

@@ -214,7 +214,8 @@ async function getUserIdByUsername(username: string): Promise<string | null> {
  * Отправляет уведомление пользователю о подтверждении записи
  */
 export async function notifyUserAboutBooking(bookingData: {
-  clientTelegram: string;
+  clientTelegram: string | null;
+  telegramUserId?: string | null;
   clientName: string;
   serviceName: string;
   date: Date | string;
@@ -225,16 +226,21 @@ export async function notifyUserAboutBooking(bookingData: {
     clientName: bookingData.clientName,
   });
 
-  if (!bookingData.clientTelegram) {
-    console.warn('Client Telegram username not provided - notification will not be sent');
+  if (!bookingData.clientTelegram && !bookingData.telegramUserId) {
+    console.warn('Neither Telegram username nor User ID provided - notification will not be sent');
     return false;
   }
 
-  // Получаем user ID по username
-  const userId = await getUserIdByUsername(bookingData.clientTelegram);
+  // Определяем ID получателя: приоритет за telegramUserId, иначе пробуем разрешить username
+  let userId: string | number | null = bookingData.telegramUserId || null;
+
+  if (!userId && bookingData.clientTelegram) {
+    // Пробуем получить user ID по username
+    userId = await getUserIdByUsername(bookingData.clientTelegram);
+  }
 
   if (!userId) {
-    console.warn('Could not resolve Telegram username to user ID');
+    console.warn('Could not determine Telegram user ID');
     return false;
   }
 
@@ -265,7 +271,8 @@ export async function notifyUserAboutBooking(bookingData: {
  * Отправляет напоминание пользователю о предстоящей записи
  */
 export async function sendBookingReminder(bookingData: {
-  clientTelegram: string;
+  clientTelegram: string | null;
+  telegramUserId?: string | null;
   clientName: string;
   serviceName: string;
   date: Date | string;
@@ -276,16 +283,21 @@ export async function sendBookingReminder(bookingData: {
     clientName: bookingData.clientName,
   });
 
-  if (!bookingData.clientTelegram) {
-    console.warn('Client Telegram username not provided - reminder will not be sent');
+  if (!bookingData.clientTelegram && !bookingData.telegramUserId) {
+    console.warn('Neither Telegram username nor User ID provided - reminder will not be sent');
     return false;
   }
 
-  // Получаем user ID по username
-  const userId = await getUserIdByUsername(bookingData.clientTelegram);
+  // Определяем ID получателя: приоритет за telegramUserId, иначе пробуем разрешить username
+  let userId: string | number | null = bookingData.telegramUserId || null;
+
+  if (!userId && bookingData.clientTelegram) {
+    // Пробуем получить user ID по username
+    userId = await getUserIdByUsername(bookingData.clientTelegram);
+  }
 
   if (!userId) {
-    console.warn('Could not resolve Telegram username to user ID');
+    console.warn('Could not determine Telegram user ID');
     return false;
   }
 

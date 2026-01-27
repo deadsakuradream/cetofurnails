@@ -60,11 +60,12 @@ export async function POST(request: NextRequest) {
     // Создаем запись
     const booking = await prisma.booking.create({
       data: {
-        clientName: data.clientName,
-        clientPhone: normalizedPhone,
-        clientTelegram: data.clientTelegram || null,
         serviceId: data.serviceId,
         timeSlotId: data.timeSlotId,
+        clientName: data.clientName,
+        clientPhone: normalizedPhone, // Keep normalized phone
+        clientTelegram: data.clientTelegram || null, // Keep handling for null
+        telegramUserId: data.telegramUserId || null, // Add telegramUserId
         notes: data.notes || null,
         status: 'pending',
       },
@@ -106,6 +107,7 @@ export async function POST(request: NextRequest) {
     if (booking.clientTelegram) {
       userNotificationPromise = notifyUserAboutBooking({
         clientTelegram: booking.clientTelegram,
+        telegramUserId: booking.telegramUserId,
         clientName: booking.clientName,
         serviceName: booking.service.name,
         date: booking.timeSlot.date,

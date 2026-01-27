@@ -56,6 +56,7 @@ export async function GET(request: NextRequest) {
 
                 const success = await sendBookingReminder({
                     clientTelegram: booking.clientTelegram,
+                    telegramUserId: booking.telegramUserId,
                     clientName: booking.clientName,
                     serviceName: booking.service.name,
                     date: booking.timeSlot.date,
