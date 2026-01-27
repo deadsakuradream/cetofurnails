@@ -21,6 +21,7 @@ export default function AdminNav({ user }: AdminNavProps) {
   const navItems = [
     { href: '/admin', label: 'Главная', exact: true },
     { href: '/admin/services', label: 'Услуги' },
+    { href: '/admin/designs', label: 'Дизайны' },
     { href: '/admin/portfolio', label: 'Портфолио' },
     { href: '/admin/time-slots', label: 'Временные слоты' },
     { href: '/admin/bookings', label: 'Записи' },
@@ -44,11 +45,10 @@ export default function AdminNav({ user }: AdminNavProps) {
                   <Link
                     key={item.href}
                     href={item.href}
-                    className={`px-3 py-2 rounded-md text-sm font-medium transition ${
-                      isActive
+                    className={`px-3 py-2 rounded-md text-sm font-medium transition ${isActive
                         ? 'bg-primary-100 text-primary-700'
                         : 'text-gray-600 hover:bg-gray-100'
-                    }`}
+                      }`}
                   >
                     {item.label}
                   </Link>
@@ -75,11 +75,10 @@ export default function AdminNav({ user }: AdminNavProps) {
               <Link
                 key={item.href}
                 href={item.href}
-                className={`px-3 py-2 rounded-md text-sm font-medium whitespace-nowrap transition ${
-                  isActive
+                className={`px-3 py-2 rounded-md text-sm font-medium whitespace-nowrap transition ${isActive
                     ? 'bg-primary-100 text-primary-700'
                     : 'text-gray-600 hover:bg-gray-100'
-                }`}
+                  }`}
               >
                 {item.label}
               </Link>

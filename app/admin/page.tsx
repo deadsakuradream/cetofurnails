@@ -7,7 +7,7 @@ export const dynamic = 'force-dynamic';
 
 async function getStats() {
   try {
-    const [services, portfolioItems, bookings, timeSlots, categories] = await Promise.all([
+    const [services, portfolioItems, bookings, timeSlots, categories, designs] = await Promise.all([
       prisma.service.count(),
       prisma.portfolioItem.count(),
       prisma.booking.count(),
@@ -20,12 +20,13 @@ async function getStats() {
         },
       }),
       prisma.category.count(),
+      prisma.design.count(),
     ]);
 
-    return { services, portfolioItems, bookings, timeSlots, categories };
+    return { services, portfolioItems, bookings, timeSlots, categories, designs };
   } catch (error) {
     console.error('Error fetching stats:', error);
-    return { services: 0, portfolioItems: 0, bookings: 0, timeSlots: 0, categories: 0 };
+    return { services: 0, portfolioItems: 0, bookings: 0, timeSlots: 0, categories: 0, designs: 0 };
   }
 }
 
@@ -38,7 +39,7 @@ export default async function AdminDashboard() {
     stats = await getStats();
   } catch (error) {
     console.error('Dashboard error:', error);
-    stats = { services: 0, portfolioItems: 0, bookings: 0, timeSlots: 0, categories: 0 };
+    stats = { services: 0, portfolioItems: 0, bookings: 0, timeSlots: 0, categories: 0, designs: 0 };
   }
 
   return (
@@ -91,6 +92,17 @@ export default async function AdminDashboard() {
         </div>
 
         <div className="bg-white rounded-lg shadow p-6">
+          <h3 className="text-lg font-semibold text-gray-700 mb-2">Дизайны</h3>
+          <p className="text-3xl font-bold text-primary-600">{stats.designs}</p>
+          <Link
+            href="/admin/designs"
+            className="text-sm text-primary-600 hover:underline mt-2 inline-block"
+          >
+            Управление →
+          </Link>
+        </div>
+
+        <div className="bg-white rounded-lg shadow p-6">
           <h3 className="text-lg font-semibold text-gray-700 mb-2">Доступные слоты</h3>
           <p className="text-3xl font-bold text-primary-600">{stats.timeSlots}</p>
           <Link
@@ -128,6 +140,12 @@ export default async function AdminDashboard() {
             className="p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-primary-500 hover:bg-primary-50 transition text-center"
           >
             📂 Добавить категорию
+          </Link>
+          <Link
+            href="/admin/designs/new"
+            className="p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-primary-500 hover:bg-primary-50 transition text-center"
+          >
+            🎨 Добавить дизайн
           </Link>
         </div>
       </div>
