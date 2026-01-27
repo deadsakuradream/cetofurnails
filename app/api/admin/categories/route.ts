@@ -14,7 +14,7 @@ export async function GET() {
         });
         return NextResponse.json(categories);
     } catch (error) {
-        return marginBottom.json({ message: 'Ошибка при получении категорий' }, { status: 500 });
+        return NextResponse.json({ message: 'Ошибка при получении категорий' }, { status: 500 });
     }
 }
 
