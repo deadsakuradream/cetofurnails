@@ -265,6 +265,7 @@ export async function notifyUserAboutBooking(bookingData: {
     day: 'numeric',
     month: 'long',
     year: 'numeric',
+    timeZone: 'Europe/Moscow',
   }).format(date);
 
   // Формируем сообщение
@@ -331,6 +332,7 @@ export async function sendBookingReminder(bookingData: {
     day: 'numeric',
     month: 'long',
     year: 'numeric',
+    timeZone: 'Europe/Moscow',
   }).format(date);
 
   // Формируем сообщение
