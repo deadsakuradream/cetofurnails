@@ -282,8 +282,8 @@ export async function notifyUserAboutBooking(bookingData: {
     message += `💰 <b>Итого:</b> ${bookingData.totalPrice} ₽\n`;
   }
   message += `\n`;
-  message += `Ждем вас! 💖\n\n`;
-  message += `<i>Если нужно отменить или перенести запись, напишите нам: @cetofur</i>`;
+  message += `Жду Вас!\n\n`;
+  message += `<i>Если нужно отменить или перенести запись, напишите мне: @cetofur</i>`;
 
   return await sendTelegramMessage(userId, message, 'HTML');
 }
@@ -338,7 +338,7 @@ export async function sendBookingReminder(bookingData: {
   // Формируем сообщение
   let message = `⏰ <b>Напоминание о записи</b>\n\n`;
   message += `Здравствуйте, ${escapeHtml(bookingData.clientName)}!\n\n`;
-  message += `Напоминаем, что завтра у вас запись:\n\n`;
+  message += `Напоминаем, что завтра у Вас запись:\n\n`;
   message += `💅 <b>Услуга:</b> ${escapeHtml(bookingData.serviceName)}\n`;
   if (bookingData.designName) {
     message += `🎨 <b>Дизайн:</b> ${escapeHtml(bookingData.designName)}\n`;
@@ -349,8 +349,8 @@ export async function sendBookingReminder(bookingData: {
     message += `💰 <b>Итого:</b> ${bookingData.totalPrice} ₽\n`;
   }
   message += `\n`;
-  message += `Будем рады вас видеть! 💖\n\n`;
-  message += `<i>Если не сможете прийти, пожалуйста, предупредите нас заранее.</i>`;
+  message += `Буду рада Вас видеть!\n\n`;
+  message += `<i>Если не сможете прийти, пожалуйста, предупредите меня заранее: @cetofur</i>`;
 
   return await sendTelegramMessage(userId, message, 'HTML');
 }
