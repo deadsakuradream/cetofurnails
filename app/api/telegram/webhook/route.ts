@@ -142,10 +142,10 @@ export async function POST(request: NextRequest) {
         console.error('Error saving user:', e);
       }
 
-      let welcomeMessage = '👋 Добро пожаловать!\\n\\n1️⃣ Сначала нажмите "📱 Поделиться контактом", чтобы ваш номер заполнился автоматически\\n\\n2️⃣ Затем нажмите кнопку "Записаться" слева снизу ↙️';
+      let welcomeMessage = '👋 Добро пожаловать!\n\n1️⃣ Сначала нажмите "📱 Поделиться контактом", чтобы ваш номер заполнился автоматически\n\n2️⃣ Затем нажмите кнопку "Записаться" слева снизу ↙️';
 
       if (isAdmin) {
-        welcomeMessage += `\\n\\n🔑 Ваш Telegram ID: ${chatId}\\n\\n👑 <b>Админ-команды:</b>\\n/bookings — список ближайших записей`;
+        welcomeMessage += `\n\n🔑 Ваш Telegram ID: ${chatId}\n\n👑 <b>Админ-команды:</b>\n/bookings — список ближайших записей`;
       }
 
       const replyMarkup = {
@@ -173,7 +173,7 @@ export async function POST(request: NextRequest) {
     if (text === '/myid' || text === '/id') {
       await sendMessage(
         chatId,
-        `🆔 Ваш Telegram ID: <code>${chatId}</code>\\n\\nИспользуйте этот ID для переменной окружения TELEGRAM_ADMIN_ID.`,
+        `🆔 Ваш Telegram ID: <code>${chatId}</code>\n\nИспользуйте этот ID для переменной окружения TELEGRAM_ADMIN_ID.`,
         undefined
       );
     }
@@ -186,7 +186,7 @@ export async function POST(request: NextRequest) {
         if (bookings.length === 0) {
           await sendMessage(chatId, '📭 Нет предстоящих записей');
         } else {
-          let response = '📋 <b>Ближайшие записи:</b>\\n\\n';
+          let response = '📋 <b>Ближайшие записи:</b>\n\n';
 
           for (const booking of bookings) {
             const date = formatDateRu(booking.timeSlot.date);
@@ -197,12 +197,12 @@ export async function POST(request: NextRequest) {
             const design = booking.design?.name;
             const total = booking.service.price + (booking.design?.price || 0);
 
-            response += `📅 <b>${date}</b> в ${time}\\n`;
-            response += `👤 ${clientName}\\n`;
-            response += `📞 <a href="tel:${phone}">${phone}</a>\\n`;
+            response += `📅 <b>${date}</b> в ${time}\n`;
+            response += `👤 ${clientName}\n`;
+            response += `📞 <a href="tel:${phone}">${phone}</a>\n`;
             response += `💅 ${service}`;
             if (design) response += ` + ${design}`;
-            response += `\\n💰 ${total} ₽\\n\\n`;
+            response += `\n💰 ${total} ₽\n\n`;
           }
 
           await sendMessage(chatId, response);
@@ -249,7 +249,7 @@ export async function POST(request: NextRequest) {
 
       await sendMessage(
         chatId,
-        `✅ Спасибо! Ваш номер телефона сохранен: ${phoneNumber}\\n\\nТеперь нажмите кнопку "Записаться" слева снизу ↙️ для записи на услугу.`,
+        `✅ Спасибо! Ваш номер телефона сохранен: ${phoneNumber}\n\nТеперь нажмите кнопку "Записаться" слева снизу ↙️ для записи на услугу.`,
         keyboard
       );
     }
