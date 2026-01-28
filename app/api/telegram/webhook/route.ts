@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '';
+const TELEGRAM_ADMIN_ID = process.env.TELEGRAM_ADMIN_ID || '';
 const TELEGRAM_API_URL = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}`;
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://nogtikaif.vercel.app';
 
@@ -68,6 +69,41 @@ async function sendMessage(chatId: number, text: string, replyMarkup?: any) {
   }
 }
 
+// Функция форматирования даты
+function formatDateRu(date: Date): string {
+  return new Intl.DateTimeFormat('ru-RU', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+    timeZone: 'Europe/Moscow',
+  }).format(date);
+}
+
+// Получение списка записей для админа
+async function getUpcomingBookings() {
+  const now = new Date();
+  const bookings = await prisma.booking.findMany({
+    where: {
+      status: { in: ['pending', 'confirmed'] },
+      timeSlot: {
+        date: { gte: now },
+      },
+    },
+    include: {
+      service: true,
+      design: true,
+      timeSlot: true,
+    },
+    orderBy: {
+      timeSlot: {
+        date: 'asc',
+      },
+    },
+    take: 10, // Максимум 10 записей
+  });
+  return bookings;
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body: TelegramUpdate = await request.json();
@@ -82,6 +118,7 @@ export async function POST(request: NextRequest) {
     const chatId = message.chat.id;
     const text = message.text;
     const from = message.from;
+    const isAdmin = String(chatId) === TELEGRAM_ADMIN_ID;
 
     // Обработка команды /start
     if (text === '/start') {
@@ -105,12 +142,10 @@ export async function POST(request: NextRequest) {
         console.error('Error saving user:', e);
       }
 
-      // Если это админ (проверяем по TELEGRAM_ADMIN_ID), показываем его ID
-      const adminId = process.env.TELEGRAM_ADMIN_ID;
-      let welcomeMessage = '👋 Добро пожаловать!\n\n1️⃣ Сначала нажмите "📱 Поделиться контактом", чтобы ваш номер заполнился автоматически\n\n2️⃣ Затем нажмите кнопку "Записаться" слева снизу ↙️';
+      let welcomeMessage = '👋 Добро пожаловать!\\n\\n1️⃣ Сначала нажмите "📱 Поделиться контактом", чтобы ваш номер заполнился автоматически\\n\\n2️⃣ Затем нажмите кнопку "Записаться" слева снизу ↙️';
 
-      if (adminId && String(chatId) === adminId) {
-        welcomeMessage += `\n\n🔑 Ваш Telegram ID: ${chatId}\n(Используйте этот ID для настройки уведомлений)`;
+      if (isAdmin) {
+        welcomeMessage += `\\n\\n🔑 Ваш Telegram ID: ${chatId}\\n\\n👑 <b>Админ-команды:</b>\\n/bookings — список ближайших записей`;
       }
 
       const replyMarkup = {
@@ -121,6 +156,7 @@ export async function POST(request: NextRequest) {
               request_contact: true,
             },
           ],
+          ...(isAdmin ? [[{ text: '📋 Записи' }]] : []),
         ],
         resize_keyboard: true,
         one_time_keyboard: false,
@@ -137,9 +173,44 @@ export async function POST(request: NextRequest) {
     if (text === '/myid' || text === '/id') {
       await sendMessage(
         chatId,
-        `🆔 Ваш Telegram ID: <code>${chatId}</code>\n\nИспользуйте этот ID для переменной окружения TELEGRAM_ADMIN_ID.`,
+        `🆔 Ваш Telegram ID: <code>${chatId}</code>\\n\\nИспользуйте этот ID для переменной окружения TELEGRAM_ADMIN_ID.`,
         undefined
       );
+    }
+
+    // Команда /bookings или кнопка "📋 Записи" — только для админа
+    if ((text === '/bookings' || text === '📋 Записи') && isAdmin) {
+      try {
+        const bookings = await getUpcomingBookings();
+
+        if (bookings.length === 0) {
+          await sendMessage(chatId, '📭 Нет предстоящих записей');
+        } else {
+          let response = '📋 <b>Ближайшие записи:</b>\\n\\n';
+
+          for (const booking of bookings) {
+            const date = formatDateRu(booking.timeSlot.date);
+            const time = booking.timeSlot.startTime;
+            const clientName = booking.clientName;
+            const phone = booking.clientPhone;
+            const service = booking.service.name;
+            const design = booking.design?.name;
+            const total = booking.service.price + (booking.design?.price || 0);
+
+            response += `📅 <b>${date}</b> в ${time}\\n`;
+            response += `👤 ${clientName}\\n`;
+            response += `📞 <a href="tel:${phone}">${phone}</a>\\n`;
+            response += `💅 ${service}`;
+            if (design) response += ` + ${design}`;
+            response += `\\n💰 ${total} ₽\\n\\n`;
+          }
+
+          await sendMessage(chatId, response);
+        }
+      } catch (e) {
+        console.error('Error fetching bookings:', e);
+        await sendMessage(chatId, '❌ Ошибка при получении записей');
+      }
     }
 
     // Обработка полученного контакта
@@ -170,12 +241,16 @@ export async function POST(request: NextRequest) {
         console.error('Error saving contact:', e);
       }
 
+      // Для админа показываем кнопку записей после сохранения контакта
+      const keyboard = isAdmin ? {
+        keyboard: [[{ text: '📋 Записи' }]],
+        resize_keyboard: true,
+      } : { remove_keyboard: true };
+
       await sendMessage(
         chatId,
-        `✅ Спасибо! Ваш номер телефона сохранен: ${phoneNumber}\n\nТеперь нажмите кнопку "Записаться" слева снизу ↙️ для записи на услугу.`,
-        {
-          remove_keyboard: true
-        }
+        `✅ Спасибо! Ваш номер телефона сохранен: ${phoneNumber}\\n\\nТеперь нажмите кнопку "Записаться" слева снизу ↙️ для записи на услугу.`,
+        keyboard
       );
     }
 
@@ -188,3 +263,4 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
