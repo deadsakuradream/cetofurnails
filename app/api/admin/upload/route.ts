@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth';
-import { writeFile, mkdir } from 'fs/promises';
-import { join } from 'path';
-import { existsSync } from 'fs';
+import { uploadImage } from '@/lib/cloudinary';
 
 export const dynamic = 'force-dynamic';
 
@@ -23,50 +21,35 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Проверяем тип файла
+    if (!file.type.startsWith('image/')) {
+      return NextResponse.json(
+        { message: 'Файл должен быть изображением' },
+        { status: 400 }
+      );
+    }
+
+    // Проверяем размер файла (макс 10 МБ)
+    if (file.size > 10 * 1024 * 1024) {
+      return NextResponse.json(
+        { message: 'Размер файла не должен превышать 10 МБ' },
+        { status: 400 }
+      );
+    }
+
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    // Создаем директорию для загрузок, если её нет
-    const uploadsDir = join(process.cwd(), 'public', 'uploads');
-    if (!existsSync(uploadsDir)) {
-      await mkdir(uploadsDir, { recursive: true });
-    }
-
-    // Генерируем уникальное имя файла
-    const timestamp = Date.now();
-    const filename = `${timestamp}-${file.name}`;
-    const filepath = join(uploadsDir, filename);
-
-    await writeFile(filepath, buffer);
-
-    const url = `/uploads/${filename}`;
+    // Загружаем в Cloudinary
+    const url = await uploadImage(buffer, 'portfolio');
 
     return NextResponse.json({ url });
   } catch (error: any) {
     console.error('Upload error:', error);
-    console.error('Error details:', {
-      message: error.message,
-      code: error.code,
-      errno: error.errno,
-      syscall: error.syscall,
-      path: error.path,
-    });
-    
-    // Проверяем, является ли это ошибкой файловой системы (что нормально на Vercel)
-    if (error.code === 'EROFS' || error.code === 'EACCES' || error.errno === -30) {
-      return NextResponse.json(
-        { 
-          message: 'Загрузка файлов на сервер не поддерживается. Используйте внешний URL изображения или настройте Vercel Blob Storage.',
-          error: 'File system is read-only on Vercel',
-          hint: 'Please use an external image URL or configure Vercel Blob Storage'
-        },
-        { status: 500 }
-      );
-    }
-    
+
     return NextResponse.json(
-      { 
-        message: 'Ошибка при загрузке файла',
+      {
+        message: 'Ошибка при загрузке изображения',
         error: error.message || 'Unknown error'
       },
       { status: 500 }
