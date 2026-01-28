@@ -86,36 +86,33 @@ export default async function Home() {
           <h2 className="text-3xl md:text-4xl font-bold text-center mb-8 text-gray-900">
             Примеры работ
           </h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {portfolioItems.length > 0 ? (
-              portfolioItems.map((item: PortfolioItem) => (
+          {portfolioItems.length > 0 ? (
+            <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 md:gap-3">
+              {portfolioItems.map((item: PortfolioItem) => (
                 <div
                   key={item.id}
-                  className="relative aspect-square rounded-lg overflow-hidden shadow-md hover:shadow-xl transition group"
+                  className="relative aspect-square rounded-xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-300 group cursor-pointer hover:scale-105 hover:z-10"
                 >
                   <Image
                     src={item.imageUrl}
                     alt={item.title}
                     fill
-                    className="object-cover group-hover:scale-110 transition duration-300"
-                    sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
+                    className="object-cover"
+                    sizes="(max-width: 768px) 33vw, (max-width: 1200px) 25vw, 16vw"
                   />
-                  <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition flex items-center justify-center">
-                    <div className="text-white opacity-0 group-hover:opacity-100 transition text-center px-2">
-                      <h3 className="font-bold mb-1">{item.title}</h3>
-                      {item.description && (
-                        <p className="text-sm">{item.description}</p>
-                      )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <div className="absolute bottom-0 left-0 right-0 p-2 text-white">
+                      <h3 className="font-semibold text-xs md:text-sm truncate">{item.title}</h3>
                     </div>
                   </div>
                 </div>
-              ))
-            ) : (
-              <div className="col-span-full text-center text-gray-500 py-8">
-                Примеры работ пока не добавлены
-              </div>
-            )}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center text-gray-500 py-8 bg-gray-50 rounded-xl">
+              Примеры работ пока не добавлены
+            </div>
+          )}
         </section>
       </section>
 
