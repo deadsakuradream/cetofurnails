@@ -46,3 +46,27 @@ export async function PUT(
     );
   }
 }
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  const user = await getCurrentUser();
+  if (!user) {
+    return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+  }
+
+  try {
+    await prisma.portfolioItem.delete({
+      where: { id: params.id },
+    });
+
+    return NextResponse.json({ message: 'Работа удалена' });
+  } catch (error) {
+    console.error('Portfolio delete error:', error);
+    return NextResponse.json(
+      { message: 'Ошибка при удалении работы' },
+      { status: 500 }
+    );
+  }
+}

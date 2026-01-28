@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
         telegramUserId: data.telegramUserId || null, // Add telegramUserId
         designId: data.designId || null,
         notes: data.notes || null,
-        status: 'pending',
+        status: 'confirmed',
       },
       include: {
         service: true,

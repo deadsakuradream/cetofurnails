@@ -4,6 +4,7 @@ import Image from 'next/image';
 import { redirect } from 'next/navigation';
 import { getCurrentUser } from '@/lib/auth';
 import { PortfolioItem } from '@prisma/client';
+import DeleteButton from './DeleteButton';
 
 export const dynamic = 'force-dynamic';
 
@@ -50,20 +51,22 @@ export default async function PortfolioPage() {
               )}
               <div className="flex items-center justify-between">
                 <span
-                  className={`px-2 py-1 text-xs rounded-full ${
-                    item.isActive
-                      ? 'bg-green-100 text-green-800'
-                      : 'bg-gray-100 text-gray-800'
-                  }`}
+                  className={`px-2 py-1 text-xs rounded-full ${item.isActive
+                    ? 'bg-green-100 text-green-800'
+                    : 'bg-gray-100 text-gray-800'
+                    }`}
                 >
                   {item.isActive ? 'Активна' : 'Неактивна'}
                 </span>
-                <Link
-                  href={`/admin/portfolio/${item.id}/edit`}
-                  className="text-primary-600 hover:text-primary-900 text-sm"
-                >
-                  Редактировать
-                </Link>
+                <div className="flex gap-3">
+                  <Link
+                    href={`/admin/portfolio/${item.id}/edit`}
+                    className="text-primary-600 hover:text-primary-900 text-sm"
+                  >
+                    Редактировать
+                  </Link>
+                  <DeleteButton itemId={item.id} />
+                </div>
               </div>
             </div>
           </div>
