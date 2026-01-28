@@ -17,6 +17,7 @@ export function formatDate(date: Date): string {
     day: 'numeric',
     month: 'long',
     year: 'numeric',
+    timeZone: 'Europe/Moscow',
   }).format(date)
 }
 

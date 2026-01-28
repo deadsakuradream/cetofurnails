@@ -147,6 +147,7 @@ export async function notifyAdminAboutBooking(bookingData: {
     day: 'numeric',
     month: 'long',
     year: 'numeric',
+    timeZone: 'Europe/Moscow',
   }).format(date);
 
   // Форматируем телефон в читаемый вид
