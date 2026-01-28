@@ -118,7 +118,9 @@ function Calendar({ slots, selectedSlotId, onSelectSlot }: CalendarProps) {
     const firstDay = new Date(year, month, 1);
     const lastDay = new Date(year, month + 1, 0);
     const daysInMonth = lastDay.getDate();
-    const startingDay = firstDay.getDay();
+    // getDay() returns 0 for Sunday, but we need Monday as first day
+    // Convert: Sun=0 -> 6, Mon=1 -> 0, Tue=2 -> 1, etc.
+    const startingDay = (firstDay.getDay() + 6) % 7;
 
     const days = [];
     for (let i = 0; i < startingDay; i++) {
@@ -461,21 +463,22 @@ export default function BookingForm({ services, designs, timeSlots }: BookingFor
             Выберите дизайн (необязательно)
           </h3>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="flex gap-3 overflow-x-auto pb-2 -mx-2 px-2" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
             {/* Option "No Design" */}
             <div
               onClick={() => setSelectedDesign('')}
               className={`
-                p-4 rounded-xl cursor-pointer transition-all duration-300
-                border-2 hover:scale-[1.02] hover:shadow-lg
+                flex-shrink-0 w-28 p-3 rounded-xl cursor-pointer transition-all duration-300
+                border-2 hover:shadow-lg
                 ${!selectedDesign
                   ? 'border-primary-600 bg-primary-50 shadow-lg'
                   : 'border-gray-200 bg-white hover:border-primary-300'
                 }
               `}
             >
-              <h4 className="font-bold text-gray-900">Без дизайна</h4>
-              <p className="text-sm text-gray-500">Только маникюр</p>
+              <h4 className="font-bold text-gray-900 text-sm">Без дизайна</h4>
+              <p className="text-xs text-gray-500 mt-1">Только маникюр</p>
+              <p className="font-semibold text-primary-600 text-sm mt-2">0 ₽</p>
             </div>
 
             {designs.map(design => (
@@ -483,18 +486,21 @@ export default function BookingForm({ services, designs, timeSlots }: BookingFor
                 key={design.id}
                 onClick={() => setSelectedDesign(design.id)}
                 className={`
-                  p-4 rounded-xl cursor-pointer transition-all duration-300
-                  border-2 hover:scale-[1.02] hover:shadow-lg
+                  flex-shrink-0 w-28 p-3 rounded-xl cursor-pointer transition-all duration-300
+                  border-2 hover:shadow-lg
                   ${selectedDesign === design.id
                     ? 'border-primary-600 bg-primary-50 shadow-lg'
                     : 'border-gray-200 bg-white hover:border-primary-300'
                   }
                 `}
               >
-                <div className="flex justify-between items-center mb-1">
-                  <h4 className="font-bold text-gray-900">{design.name}</h4>
-                  <span className="font-bold text-primary-600">{formatPrice(design.price)}</span>
-                </div>
+                <h4 className="font-bold text-gray-900 text-sm truncate" title={design.name}>{design.name}</h4>
+                {design.description && (
+                  <p className="text-xs text-gray-500 mt-1 line-clamp-2" title={design.description}>
+                    {design.description}
+                  </p>
+                )}
+                <p className="font-semibold text-primary-600 text-sm mt-2">{formatPrice(design.price)}</p>
               </div>
             ))}
           </div>
