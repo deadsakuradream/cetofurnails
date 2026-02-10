@@ -13,13 +13,15 @@ export async function GET(request: NextRequest) {
     try {
         console.log('Starting reminder notifications cron job...');
 
-        // Получаем завтрашнюю дату
-        const tomorrow = new Date();
-        tomorrow.setDate(tomorrow.getDate() + 1);
-        tomorrow.setHours(0, 0, 0, 0);
-
+        // Используем московское время для определения "завтра"
+        const moscowNow = new Date(new Date().toLocaleString('en-US', { timeZone: 'Europe/Moscow' }));
+        const tomorrowMoscow = new Date(moscowNow);
+        tomorrowMoscow.setDate(tomorrowMoscow.getDate() + 1);
+        // Строим дату как YYYY-MM-DD и парсим в UTC midnight (так хранятся даты слотов)
+        const tomorrowStr = `${tomorrowMoscow.getFullYear()}-${String(tomorrowMoscow.getMonth() + 1).padStart(2, '0')}-${String(tomorrowMoscow.getDate()).padStart(2, '0')}`;
+        const tomorrow = new Date(tomorrowStr + 'T00:00:00.000Z');
         const dayAfterTomorrow = new Date(tomorrow);
-        dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 1);
+        dayAfterTomorrow.setUTCDate(dayAfterTomorrow.getUTCDate() + 1);
 
         console.log(`Looking for bookings between ${tomorrow.toISOString()} and ${dayAfterTomorrow.toISOString()}`);
 
@@ -35,9 +37,10 @@ export async function GET(request: NextRequest) {
                 status: {
                     in: ['pending', 'confirmed'],
                 },
-                clientTelegram: {
-                    not: null,
-                },
+                OR: [
+                    { clientTelegram: { not: null } },
+                    { telegramUserId: { not: null } },
+                ],
             },
             include: {
                 service: true,
@@ -45,14 +48,14 @@ export async function GET(request: NextRequest) {
             },
         });
 
-        console.log(`Found ${bookings.length} bookings for tomorrow with Telegram usernames`);
+        console.log(`Found ${bookings.length} bookings for tomorrow with Telegram contact info`);
 
         // Отправляем напоминания
         const results = await Promise.allSettled(
             bookings.map(async (booking) => {
-                if (!booking.clientTelegram) return { success: false, bookingId: booking.id };
+                if (!booking.clientTelegram && !booking.telegramUserId) return { success: false, bookingId: booking.id };
 
-                console.log(`Sending reminder for booking ${booking.id} to ${booking.clientTelegram}`);
+                console.log(`Sending reminder for booking ${booking.id} to ${booking.clientTelegram || booking.telegramUserId}`);
 
                 const success = await sendBookingReminder({
                     clientTelegram: booking.clientTelegram,
