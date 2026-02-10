@@ -1,4 +1,6 @@
 import { getCurrentUser } from '@/lib/auth';
+import { redirect } from 'next/navigation';
+import { headers } from 'next/headers';
 import AdminNav from '@/components/AdminNav';
 import { FolderIcon, SparklesIcon, SwatchIcon, PhotoIcon } from '@heroicons/react/24/outline';
 
@@ -17,7 +19,15 @@ export default async function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const headersList = await headers();
+  const pathname = headersList.get('x-next-url') || headersList.get('x-invoke-path') || '';
+  const isLoginPage = pathname.includes('/admin/login');
+
   const user = await getCurrentUser();
+
+  if (!user && !isLoginPage) {
+    redirect('/admin/login');
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">

@@ -1,7 +1,5 @@
 import { prisma } from '@/lib/prisma';
 import Link from 'next/link';
-import { redirect } from 'next/navigation';
-import { getCurrentUser } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
@@ -31,9 +29,6 @@ async function getStats() {
 }
 
 export default async function AdminDashboard() {
-  const user = await getCurrentUser();
-  if (!user) redirect('/admin/login');
-
   let stats;
   try {
     stats = await getStats();

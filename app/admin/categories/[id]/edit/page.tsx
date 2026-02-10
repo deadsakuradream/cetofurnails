@@ -1,7 +1,6 @@
 import { prisma } from '@/lib/prisma';
 import CategoryForm from '@/components/CategoryForm';
-import { redirect, notFound } from 'next/navigation';
-import { getCurrentUser } from '@/lib/auth';
+import { notFound } from 'next/navigation';
 
 export const dynamic = 'force-dynamic';
 
@@ -12,9 +11,6 @@ interface EditCategoryPageProps {
 }
 
 export default async function EditCategoryPage({ params }: EditCategoryPageProps) {
-    const user = await getCurrentUser();
-    if (!user) redirect('/admin/login');
-
     const category = await prisma.category.findUnique({
         where: { id: params.id },
     });

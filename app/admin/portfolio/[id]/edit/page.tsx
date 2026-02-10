@@ -1,7 +1,6 @@
 import { prisma } from '@/lib/prisma';
-import { notFound, redirect } from 'next/navigation';
+import { notFound } from 'next/navigation';
 import PortfolioForm from '@/components/PortfolioForm';
-import { getCurrentUser } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
@@ -16,9 +15,6 @@ export default async function EditPortfolioPage({
 }: {
   params: { id: string };
 }) {
-  const user = await getCurrentUser();
-  if (!user) redirect('/admin/login');
-
   const item = await getPortfolioItem(params.id);
 
   if (!item) {

@@ -1,7 +1,5 @@
 import { prisma } from '@/lib/prisma';
 import Link from 'next/link';
-import { redirect } from 'next/navigation';
-import { getCurrentUser } from '@/lib/auth';
 import DeleteButton from './DeleteButton';
 
 export const dynamic = 'force-dynamic';
@@ -18,9 +16,6 @@ async function getCategories() {
 }
 
 export default async function CategoriesPage() {
-    const user = await getCurrentUser();
-    if (!user) redirect('/admin/login');
-
     const categories = await getCategories();
 
     return (

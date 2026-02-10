@@ -1,6 +1,4 @@
 import { prisma } from '@/lib/prisma';
-import { redirect } from 'next/navigation';
-import { getCurrentUser } from '@/lib/auth';
 import { Prisma } from '@prisma/client';
 import TimeSlotCalendar from '@/components/TimeSlotCalendar';
 
@@ -38,9 +36,6 @@ async function getTimeSlots(): Promise<TimeSlotWithBookings[]> {
 }
 
 export default async function TimeSlotsPage() {
-  const user = await getCurrentUser();
-  if (!user) redirect('/admin/login');
-
   const slots = await getTimeSlots();
 
   // Группируем по датам

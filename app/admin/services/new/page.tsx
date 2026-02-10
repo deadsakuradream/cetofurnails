@@ -1,14 +1,9 @@
 import ServiceForm from '@/components/ServiceForm';
-import { redirect } from 'next/navigation';
-import { getCurrentUser } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
 export default async function NewServicePage() {
-  const user = await getCurrentUser();
-  if (!user) redirect('/admin/login');
-
   const categories = await prisma.category.findMany({
     orderBy: { name: 'asc' },
   });

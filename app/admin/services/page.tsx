@@ -1,8 +1,6 @@
 import { prisma } from '@/lib/prisma';
 import Link from 'next/link';
 import { formatPrice } from '@/lib/utils';
-import { redirect } from 'next/navigation';
-import { getCurrentUser } from '@/lib/auth';
 import { Service, Category } from '@prisma/client';
 import DeleteButton from './DeleteButton';
 
@@ -24,9 +22,6 @@ async function getCategories() {
 }
 
 export default async function ServicesPage() {
-  const user = await getCurrentUser();
-  if (!user) redirect('/admin/login');
-
   const [services, categories] = await Promise.all([
     getServices(),
     getCategories(),
@@ -96,8 +91,8 @@ export default async function ServicesPage() {
                           </h3>
                           <span
                             className={`px-2 py-0.5 text-xs font-semibold rounded-full whitespace-nowrap ${service.isActive
-                                ? 'bg-green-100 text-green-800'
-                                : 'bg-gray-100 text-gray-800'
+                              ? 'bg-green-100 text-green-800'
+                              : 'bg-gray-100 text-gray-800'
                               }`}
                           >
                             {service.isActive ? 'Активна' : 'Неактивна'}

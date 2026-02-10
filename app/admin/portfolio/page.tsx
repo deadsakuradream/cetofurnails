@@ -1,8 +1,6 @@
 import { prisma } from '@/lib/prisma';
 import Link from 'next/link';
 import Image from 'next/image';
-import { redirect } from 'next/navigation';
-import { getCurrentUser } from '@/lib/auth';
 import { PortfolioItem } from '@prisma/client';
 import DeleteButton from './DeleteButton';
 
@@ -15,9 +13,6 @@ async function getPortfolioItems(): Promise<PortfolioItem[]> {
 }
 
 export default async function PortfolioPage() {
-  const user = await getCurrentUser();
-  if (!user) redirect('/admin/login');
-
   const items = await getPortfolioItems();
 
   return (
